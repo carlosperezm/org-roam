@@ -441,8 +441,10 @@ SORT-FN is a function to sort nodes. See `org-roam-node-read-sort-by-file-mtime'
 for an example sort function.
 If REQUIRE-MATCH, the minibuffer prompt will require a match."
   (let* ((nodes (org-roam-node-read--completions))
-         (nodes (cl-remove-if-not (lambda (n)
-                                    (if filter-fn (funcall filter-fn (cdr n)) t)) nodes))
+         (nodes (if filter-fn
+                    (cl-remove-if-not
+                     (lambda (n) (funcall filter-fn (cdr n)) t))
+                  nodes))
          (sort-fn (or sort-fn
                       (when org-roam-node-default-sort
                         (intern (concat "org-roam-node-read-sort-by-"
@@ -848,7 +850,8 @@ If region is active, then use it instead of the node at point."
                            (t (let ((r (completing-read (format "%s: " key) nil nil nil default-val)))
                                 (plist-put template-info ksym r)
                                 r)))))))
-           (file-path (read-file-name "Extract node to: " org-roam-directory template nil template)))
+           (file-path (read-file-name "Extract node to: "
+                                      (file-name-as-directory org-roam-directory) template nil template)))
       (when (file-exists-p file-path)
         (user-error "%s exists. Aborting" file-path))
       (org-cut-subtree)
